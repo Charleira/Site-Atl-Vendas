@@ -78,3 +78,24 @@ func RemoveProductFromCart(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Produto removido do carrinho"})
 }
+
+// Limpa o carrinho do usuário
+// @Summary Limpa o carrinho do usuário
+// @Description Remove todos os produtos do carrinho de um usuário
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Param user_id path int true "ID do Usuário"
+// @Success 200 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /cart/{user_id}/clear [delete]
+func ClearCart(c *gin.Context) {
+	userID, _ := strconv.Atoi(c.Param("user_id"))
+
+	err := services.ClearCart(config.DB, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao limpar o carrinho"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Carrinho limpo com sucesso"})
+}

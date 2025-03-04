@@ -36,3 +36,13 @@ func RemoveProductFromCart(db *sql.DB, userID int, productID int) error {
 	}
 	return nil
 }
+
+// Limpa o carrinho do usuário
+func ClearCart(db *sql.DB, userID int) error {
+	err := repositories.ClearCart(db, userID)
+	if err != nil {
+		log.Println("Erro ao limpar carrinho:", err)
+		return err
+	}
+	return nil
+}

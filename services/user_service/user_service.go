@@ -1,4 +1,3 @@
-// services/user_services/user_service.go
 package services
 
 import (
@@ -9,44 +8,53 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// RegisterUserService valida os dados do usuário e chama o repositório para inserção
-func RegisterUserService(user models.User) error {
-	// Validar se o usuário já existe
-	existingUser, _ := repositories.GetUserByUsername(user.Username)
-	if existingUser != nil {
-		return errors.New("usuário já existe")
+// GetUserDetailsService busca os detalhes do usuário
+func GetUserDetailsService(userID string) (*models.User, error) {
+	user, err := repositories.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+// UpdateUserDetailsService permite ao usuário atualizar suas informações
+func UpdateUserDetailsService(userID string, updatedUser models.User) error {
+	user, err := repositories.GetUserByID(userID)
+	if err != nil {
+		return err
 	}
 
-	// Criptografar senha
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	// Atualiza apenas os campos permitidos
+	user.Username = updatedUser.Username
+
+	return repositories.UpdateUser(user)
+}
+
+// ChangePasswordService permite ao usuário alterar sua senha
+func ChangePasswordService(userID, oldPassword, newPassword string) error {
+	user, err := repositories.GetUserByID(userID)
+	if err != nil {
+		return err
+	}
+
+	// Verifica se a senha antiga está correta
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword))
+	if err != nil {
+		return errors.New("senha antiga incorreta")
+	}
+
+	// Gera nova senha criptografada
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return errors.New("erro ao criptografar senha")
 	}
+
 	user.Password = string(hashedPassword)
 
-	// Inserir no repositório
-	if err := repositories.InsertUser(user); err != nil {
-		return errors.New("erro ao criar usuário")
-	}
-
-	return nil
+	return repositories.UpdateUser(user)
 }
 
-// PromoteUserToAdminService promove o usuário para administrador
-func PromoteUserToAdminService(id string) error {
-	// Chama o repositório para buscar o usuário
-	user, err := repositories.GetUserByID(id)
-	if err != nil {
-		return err
-	}
-
-	// Alterar o papel para "admin"
-	user.Role = "admin"
-
-	// Atualizar no repositório
-	if err := repositories.UpdateUserRole(user); err != nil {
-		return err
-	}
-
-	return nil
+// DeleteUserService remove um usuário do sistema
+func DeleteUserService(userID string) error {
+	return repositories.DeleteUser(userID)
 }

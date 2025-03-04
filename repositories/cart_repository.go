@@ -41,3 +41,10 @@ func RemoveProductFromCart(db *sql.DB, userID int, productID int) error {
 	_, err := db.Exec(query, userID, productID)
 	return err
 }
+
+// Limpa o carrinho do usuário
+func ClearCart(db *sql.DB, userID int) error {
+	query := `DELETE FROM carts WHERE user_id = ?`
+	_, err := db.Exec(query, userID)
+	return err
+}

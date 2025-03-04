@@ -1,52 +1,60 @@
-// services/order_service/order_service.go
 package order_service
 
 import (
+	"atlanta-site/config"
 	"atlanta-site/models"
 	"atlanta-site/repositories"
 	"errors"
+	"time"
 )
 
 // CreateOrderService cria um novo pedido
 func CreateOrderService(order *models.Order) error {
-	// Chama o repositório para criar o pedido
-	if err := repositories.CreateOrder(order); err != nil {
-		return err
-	}
-	return nil
-}
+	// Definindo o status inicial como "pending"
+	order.Status = models.StatusPending
 
-// ProcessPaymentService processa o pagamento
-func ProcessPaymentService(paymentRequest models.PaymentRequest) error {
-	// Aqui você pode implementar a lógica para processar o pagamento
-	// Por exemplo, consultar o gateway de pagamento, confirmar o pagamento, etc.
-	// Por enquanto, apenas retornamos nil, simulando sucesso no pagamento.
+	// Preenche o CreatedAt com a data atual
+	order.CreatedAt = time.Now()
 
-	// Verifique se o valor do pagamento está correto
-	if paymentRequest.Amount <= 0 {
-		return errors.New("valor do pagamento inválido")
-	}
-
-	// Processamento do pagamento (aqui você pode integrar com APIs de pagamento reais)
-	// Neste exemplo, assumimos que o pagamento foi bem-sucedido
-
-	return nil
-}
-
-// ChangeOrderStatusService altera o status de um pedido
-func ChangeOrderStatusService(orderID uint, status string) error {
-	// Alterar o status do pedido
-	if err := repositories.UpdateOrderStatus(orderID, status); err != nil {
-		return err
-	}
-	return nil
-}
-
-// GetOrdersService retorna todos os pedidos
-func GetOrdersService() ([]models.Order, error) {
-	orders, err := repositories.GetAllOrders()
+	// Insere o pedido no banco de dados
+	query := `INSERT INTO orders (item, quantity, price, total_price, user_id, nickname, size, status, created_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	_, err := config.DB.Exec(query, order.Item, order.Quantity, order.Price, order.TotalPrice, order.UserID, order.Nickname, order.Size, order.Status, order.CreatedAt)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return orders, nil
+	return nil
+}
+
+// GetOrderDetailsService busca os detalhes de um pedido
+func GetOrderDetailsService(orderID uint) (*models.Order, error) {
+	return repositories.GetOrderById(orderID)
+}
+
+// CancelOrderService cancela um pedido se permitido
+func CancelOrderService(orderID uint) error {
+	order, err := repositories.GetOrderById(orderID)
+	if err != nil {
+		return err
+	}
+
+	if order.Status == "Cancelado" {
+		return errors.New("pedido já cancelado")
+	}
+
+	return repositories.CancelOrder(orderID)
+}
+
+// ListOrdersService retorna pedidos do usuário
+func ListOrdersService(userID uint) ([]models.Order, error) {
+	return repositories.GetOrdersByUser(userID)
+}
+
+// TrackOrderService retorna o status de um pedido
+func TrackOrderService(orderID uint) (string, error) {
+	order, err := repositories.GetOrderById(orderID)
+	if err != nil {
+		return "", err
+	}
+	return order.Status, nil
 }

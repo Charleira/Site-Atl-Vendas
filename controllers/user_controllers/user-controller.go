@@ -1,4 +1,3 @@
-// user_controllers/user_controller.go
 package user_controllers
 
 import (
@@ -9,33 +8,69 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RegisterUser lida com a criação de um novo usuário
-func RegisterUser(c *gin.Context) {
-	var user models.User
+// GetUserDetails obtém detalhes do usuário autenticado
+func GetUserDetails(c *gin.Context) {
+	userID := c.Param("id")
 
-	if err := c.ShouldBindJSON(&user); err != nil {
+	user, err := services.GetUserDetailsService(userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
+// UpdateUserDetails permite ao usuário atualizar seu perfil
+func UpdateUserDetails(c *gin.Context) {
+	userID := c.Param("id")
+	var updatedUser models.User
+
+	if err := c.ShouldBindJSON(&updatedUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
 		return
 	}
 
-	// Chama o service para fazer as validações e inserir o usuário
-	if err := services.RegisterUserService(user); err != nil {
+	err := services.UpdateUserDetailsService(userID, updatedUser)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Usuário registrado com sucesso!"})
+	c.JSON(http.StatusOK, gin.H{"message": "Perfil atualizado com sucesso"})
 }
 
-// PromoteUserToAdmin lida com a promoção de um usuário a administrador
-func PromoteUserToAdmin(c *gin.Context) {
-	id := c.Param("id")
+// ChangePassword permite ao usuário alterar sua senha
+func ChangePassword(c *gin.Context) {
+	userID := c.Param("id")
+	var passwordData struct {
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
+	}
 
-	// Chama o service para promover o usuário
-	if err := services.PromoteUserToAdminService(id); err != nil {
+	if err := c.ShouldBindJSON(&passwordData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		return
+	}
+
+	err := services.ChangePasswordService(userID, passwordData.OldPassword, passwordData.NewPassword)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Usuário promovido a administrador!"})
+	c.JSON(http.StatusOK, gin.H{"message": "Senha alterada com sucesso"})
+}
+
+// DeleteUser permite ao usuário deletar sua conta
+func DeleteUser(c *gin.Context) {
+	userID := c.Param("id")
+
+	err := services.DeleteUserService(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Usuário deletado com sucesso"})
 }

@@ -53,3 +53,17 @@ func UpdateUserRole(user *models.User) error {
 	_, err := config.DB.Exec(query, user.Role, user.ID)
 	return err
 }
+
+// UpdateUser atualiza os dados do usuário no banco
+func UpdateUser(user *models.User) error {
+	query := `UPDATE users SET username = ?, password = ? WHERE id = ?`
+	_, err := config.DB.Exec(query, user.Username, user.Password, user.ID)
+	return err
+}
+
+// DeleteUser remove um usuário do banco
+func DeleteUser(userID string) error {
+	query := `DELETE FROM users WHERE id = ?`
+	_, err := config.DB.Exec(query, userID)
+	return err
+}
