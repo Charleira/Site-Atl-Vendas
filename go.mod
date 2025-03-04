@@ -13,12 +13,15 @@ require (
 	golang.org/x/crypto v0.35.0
 )
 
+require github.com/stripe/stripe-go/v81 v81.4.0
+
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/bytedance/sonic v1.12.10 // indirect
 	github.com/bytedance/sonic/loader v0.2.3 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
+	github.com/gin-contrib/cors v1.7.3
 	github.com/gin-contrib/sse v1.0.0 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect

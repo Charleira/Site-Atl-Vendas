@@ -13,14 +13,14 @@ import (
 )
 
 func SetupRoutes(router *gin.Engine) {
-	// // Rotas de autenticação
-	// auth := router.Group("/auth")
-	// {
-	// 	auth.POST("/login", authy.)          // Login
-	// 	auth.POST("/logout", auth_controller.NewAuthController().Logout)        // Logout
-	// 	auth.POST("/refresh", auth_controller.NewAuthController().RefreshToken) // Refresh token
-	// }
-
+	// Rotas administrativas
+	admin := router.Group("/admin")
+	admin.Use(middlewares.AdminMiddleware())
+	{
+		admin.GET("/orders", order_controllers.ListOrders)
+		admin.PUT("/orders/:id", order_controllers.TrackOrder) // Corrigido método para update
+		admin.PUT("/users/:id/promote", user_controllers.UpdateUserDetails)
+	}
 	// Rotas de carrinho
 	cart := router.Group("/cart")
 	{
@@ -42,8 +42,7 @@ func SetupRoutes(router *gin.Engine) {
 	// Rotas de pagamentos
 	payments := router.Group("/payments")
 	{
-		payments.POST("/", payment_controller.CreatePaymentIntent)         // Cria o pagamento via Stripe Checkout
-		payments.POST("/webhook", payment_controller.WebhookPaymentStatus) // Webhook para notificações do Stripe
+		payments.POST("/create", payment_controller.CreatePaymentIntent) // Webhook para notificações do Stripe
 	}
 
 	// Rotas de produtos
@@ -68,29 +67,21 @@ func SetupRoutes(router *gin.Engine) {
 		shipping.GET("/options", shipping_controller.GetShippingOptions) // Obtém as opções de envio disponíveis
 	}
 
-	// Rotas de usuários
-	users := router.Group("/users")
-	{
-		users.GET("/:id", user_controllers.GetUserDetails)    // Retorna informações do usuário
-		users.PUT("/:id", user_controllers.UpdateUserDetails) // Atualiza informações do usuário
-		users.DELETE("/:id", user_controllers.DeleteUser)     // Deleta usuário
-
-		// Alteração de senha
-		users.PUT("/:id/password", user_controllers.ChangePassword) // Altera a senha de um usuário
-	}
-
 	// Rotas de pedidos de um usuário
-	userOrders := router.Group("/users/:user_id/orders")
+	userOrders := router.Group("/users/orders/:user_id")
 	{
 		userOrders.GET("/", user_controllers.GetUserDetails) // Lista pedidos do usuário
 	}
 
-	// Rotas administrativas
-	admin := router.Group("/admin")
-	admin.Use(middlewares.AdminMiddleware())
+	// Rotas de usuários
+	users := router.Group("/users")
 	{
-		admin.GET("/orders", middlewares.AdminMiddleware(), order_controllers.ListOrders)
-		admin.PUT("/orders/:id", middlewares.AdminMiddleware(), order_controllers.TrackOrder) // Corrigido método para update
-		admin.PUT("/users/:id/promote", middlewares.AdminMiddleware(), user_controllers.UpdateUserDetails)
+		// Alterações nas rotas de usuários para evitar conflito
+		users.GET("/:user_id", user_controllers.GetUserDetails)    // Retorna informações do usuário
+		users.PUT("/:user_id", user_controllers.UpdateUserDetails) // Atualiza informações do usuário
+		users.DELETE("/:user_id", user_controllers.DeleteUser)     // Deleta usuário
+
+		// Alteração de senha
+		users.PUT("/:user_id/password", user_controllers.ChangePassword) // Altera a senha de um usuário
 	}
 }

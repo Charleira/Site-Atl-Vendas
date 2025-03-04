@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/gin-contrib/cors"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -23,6 +24,13 @@ func main() {
 	config.ConnectToDatabase()
 
 	router := gin.Default()
+	// Configuração do CORS
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"}, // URL do seu frontend
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 	controllers.SetupRoutes(router)
 
 	// Rota para a documentação Swagger

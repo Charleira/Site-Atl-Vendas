@@ -3,43 +3,45 @@ package stripe_service
 
 import (
 	"atlanta-site/models"
-	"atlanta-site/repositories"
+	"fmt"
 	"os"
+	"strconv"
 
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/checkout/session"
+	"github.com/stripe/stripe-go/v81"
+	"github.com/stripe/stripe-go/v81/paymentintent"
 )
 
 func CreateStripeCheckout(order models.Order) (string, error) {
-	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
+	// Obtém a chave secreta do Stripe
+	stripeKey := os.Getenv("STRIPE_SECRET_KEY")
+	if stripeKey == "" {
+		return "", fmt.Errorf("STRIPE_SECRET_KEY não configurada")
+	}
 
-	checkoutSession, err := session.New(&stripe.CheckoutSessionParams{
-		PaymentMethodTypes: stripe.StringSlice([]string{"card"}),
-		LineItems: []*stripe.CheckoutSessionLineItemParams{
-			{
-				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
-					Currency: stripe.String("brl"),
-					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
-						Name: stripe.String(order.Item),
-					},
-					UnitAmount: stripe.Int64(int64(order.TotalPrice * 100)),
-				},
-				Quantity: stripe.Int64(int64(order.Quantity)),
-			},
+	// Configura a chave de autenticação do Stripe
+	stripe.Key = stripeKey
+
+	// Converte o ID do pedido para string
+	orderID := strconv.Itoa(int(order.ID))
+
+	// Convertendo o valor para centavos
+	amountInCents := int64(order.TotalPrice * 100)
+
+	// Criação do PaymentIntent
+	params := &stripe.PaymentIntentParams{
+		Amount:   stripe.Int64(amountInCents), // Convertendo para centavos
+		Currency: stripe.String("brl"),
+		Metadata: map[string]string{
+			"order_id": orderID, // Usando o ID do pedido como string
 		},
-		Mode:       stripe.String(string(stripe.CheckoutSessionModePayment)),
-		SuccessURL: stripe.String("https://seusite.com/sucesso"),
-		CancelURL:  stripe.String("https://seusite.com/cancelado"),
-	})
+	}
 
+	// Criação do PaymentIntent
+	intent, err := paymentintent.New(params)
 	if err != nil {
 		return "", err
 	}
 
-	return checkoutSession.URL, nil
-}
-
-func UpdatePaymentStatus(stripeID string, status string) error {
-	return repositories.UpdatePaymentStatus(stripeID, status)
-
+	// Retorna o clientSecret
+	return intent.ClientSecret, nil
 }
