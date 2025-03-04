@@ -15,6 +15,16 @@ import (
 )
 
 // CreatePaymentIntent inicia o processo de pagamento via Stripe Checkout
+// @Summary Cria um pagamento
+// @Description Inicia o processo de pagamento via Stripe Checkout e retorna a URL do Checkout
+// @Tags Pagamentos
+// @Accept json
+// @Produce json
+// @Param request body models.Order true "Dados do pedido"
+// @Success 200 {object} map[string]string "checkout_url"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro ao criar pagamento"
+// @Router /payments [post]
 func CreatePaymentIntent(c *gin.Context) {
 	var order models.Order
 	if err := c.ShouldBindJSON(&order); err != nil {
@@ -32,6 +42,14 @@ func CreatePaymentIntent(c *gin.Context) {
 }
 
 // WebhookPaymentStatus recebe atualizações de status de pagamento do Stripe
+// @Summary Webhook de pagamento
+// @Description Recebe notificações do Stripe sobre o status do pagamento
+// @Tags Pagamentos
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]string "Webhook recebido"
+// @Failure 400 {object} map[string]string "Falha ao processar webhook"
+// @Router /payments/webhook [post]
 func WebhookPaymentStatus(c *gin.Context) {
 	const MaxBodyBytes = int64(65536)
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, MaxBodyBytes)

@@ -1,5 +1,12 @@
 basePath: /
 definitions:
+  models.CartProduct:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+    type: object
   models.Order:
     properties:
       created_at:
@@ -20,50 +27,88 @@ definitions:
         type: string
       total_price:
         type: number
-      user:
-        $ref: '#/definitions/models.User'
       user_id:
         type: integer
     type: object
-  models.PaymentRequest:
+  models.Product:
     properties:
-      amount:
-        description: Valor do pagamento
-        type: number
-      created_at:
-        description: Data e hora da criação da solicitação
+      description:
         type: string
       id:
         type: integer
-      method:
-        description: Método de pagamento (cartão, boleto, etc.)
+      image_url:
+        description: Novo campo para armazenar o caminho da imagem
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  models.ShippingOption:
+    description: Representa um método de envio disponível via LOGGI
+    properties:
+      eta:
+        example: 1-2 dias úteis
+        type: string
+      id:
+        example: "1"
+        type: string
+      name:
+        example: Entrega Expressa
+        type: string
+      price:
+        example: 19.99
+        type: number
+    type: object
+  models.ShippingRequest:
+    description: Dados necessários para criar um envio via LOGGI
+    properties:
+      address:
+        example: Rua das Palmeiras, 500
+        type: string
+      city:
+        example: São Paulo
         type: string
       order_id:
-        description: ID do pedido associado a esta solicitação de pagamento
+        example: 123
         type: integer
-      status:
-        description: Status do pagamento (pendente, pago, falhado)
+      phone_number:
+        example: "+5511999999999"
         type: string
-      updated_at:
-        description: Data e hora da última atualização
+      postal_code:
+        example: 01010-000
+        type: string
+      recipient:
+        example: João Silva
+        type: string
+    type: object
+  models.ShippingResponse:
+    description: Resposta após criação de um envio
+    properties:
+      estimated:
+        example: 3-5 dias úteis
+        type: string
+      status:
+        example: Pedido Criado
+        type: string
+      tracking_id:
+        example: LOGGI-12345
         type: string
     type: object
   models.User:
     properties:
+      created_at:
+        type: string
+      email:
+        type: string
       id:
         type: integer
       role:
-        description: '"admin" ou "customer"'
+        type: string
+      updated_at:
         type: string
       username:
         type: string
-    type: object
-  order_controllers.UpdateOrderStatusRequest:
-    properties:
-      status:
-        type: string
-    required:
-    - status
     type: object
 host: localhost:8080
 info:
@@ -75,15 +120,151 @@ info:
   title: API de Vendas
   version: "1.0"
 paths:
-  /create_order/:
+  /cart/{user_id}/:
+    get:
+      consumes:
+      - application/json
+      description: Retorna os produtos do carrinho do usuário
+      parameters:
+      - description: ID do Usuário
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.CartProduct'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Recupera o carrinho do usuário
+      tags:
+      - Cart
+  /cart/{user_id}/add/{product_id}/:
     post:
       consumes:
       - application/json
-      description: Cria um pedido com base nos dados enviados no corpo da requisição
+      description: Adiciona um produto ao carrinho do usuário
       parameters:
-      - description: Dados do Pedido
+      - description: ID do Usuário
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: ID do Produto
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      - description: Quantidade do Produto
+        in: query
+        name: quantity
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Adiciona um produto ao carrinho
+      tags:
+      - Cart
+  /cart/{user_id}/clear:
+    delete:
+      consumes:
+      - application/json
+      description: Remove todos os produtos do carrinho de um usuário
+      parameters:
+      - description: ID do Usuário
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Limpa o carrinho do usuário
+      tags:
+      - Cart
+  /cart/{user_id}/remove/{product_id}/:
+    delete:
+      consumes:
+      - application/json
+      description: Remove um produto do carrinho do usuário
+      parameters:
+      - description: ID do Usuário
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: ID do Produto
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Remove um produto do carrinho
+      tags:
+      - Cart
+  /orders:
+    post:
+      consumes:
+      - application/json
+      description: Cria um novo pedido com os dados fornecidos
+      parameters:
+      - description: Dados do pedido
         in: body
-        name: order
+        name: request
         required: true
         schema:
           $ref: '#/definitions/models.Order'
@@ -95,7 +276,13 @@ paths:
           schema:
             $ref: '#/definitions/models.Order'
         "400":
-          description: Bad Request
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao criar pedido
           schema:
             additionalProperties:
               type: string
@@ -103,11 +290,535 @@ paths:
       summary: Cria um novo pedido
       tags:
       - Orders
-  /list-orders/:
+  /orders/{order_id}:
+    get:
+      description: Retorna os detalhes de um pedido específico pelo ID
+      parameters:
+      - description: ID do Pedido
+        in: path
+        name: order_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Order'
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao buscar detalhes do pedido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtém detalhes de um pedido
+      tags:
+      - Orders
+  /orders/{order_id}/cancel:
+    post:
+      description: Cancela um pedido específico pelo ID
+      parameters:
+      - description: ID do Pedido
+        in: path
+        name: order_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pedido cancelado com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao cancelar pedido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cancela um pedido
+      tags:
+      - Orders
+  /orders/{order_id}/track:
+    get:
+      description: Obtém o status atual de um pedido específico pelo ID
+      parameters:
+      - description: ID do Pedido
+        in: path
+        name: order_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: status
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao rastrear pedido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Rastreia um pedido
+      tags:
+      - Orders
+  /payments:
+    post:
+      consumes:
+      - application/json
+      description: Inicia o processo de pagamento via Stripe Checkout e retorna a
+        URL do Checkout
+      parameters:
+      - description: Dados do pedido
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Order'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: checkout_url
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao criar pagamento
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria um pagamento
+      tags:
+      - Pagamentos
+  /payments/webhook:
+    post:
+      consumes:
+      - application/json
+      description: Recebe notificações do Stripe sobre o status do pagamento
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Webhook recebido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Falha ao processar webhook
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Webhook de pagamento
+      tags:
+      - Pagamentos
+  /products:
     get:
       consumes:
       - application/json
-      description: Retorna a lista de todos os pedidos cadastrados
+      description: Retorna uma lista de produtos disponíveis no catálogo
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Product'
+            type: array
+        "500":
+          description: Erro ao listar produtos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Lista todos os produtos
+      tags:
+      - Produtos
+    post:
+      consumes:
+      - multipart/form-data
+      description: Cria um novo produto enviando dados e uma imagem
+      parameters:
+      - description: Nome do produto
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Descrição do produto
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Preço do produto
+        in: formData
+        name: price
+        required: true
+        type: number
+      - description: Imagem do produto
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Produto criado com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Erro ao receber imagem
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao criar produto
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria um produto
+      tags:
+      - Produtos
+  /products/{product_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deleta um produto pelo ID
+      parameters:
+      - description: ID do produto
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Produto removido com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao remover produto
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Remove um produto
+      tags:
+      - Produtos
+    get:
+      consumes:
+      - application/json
+      description: Retorna um produto pelo seu ID
+      parameters:
+      - description: ID do produto
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Product'
+        "500":
+          description: Erro ao recuperar produto
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtém um produto
+      tags:
+      - Produtos
+    put:
+      consumes:
+      - multipart/form-data
+      description: Atualiza as informações de um produto pelo ID
+      parameters:
+      - description: ID do produto
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      - description: Nome do produto
+        in: formData
+        name: name
+        type: string
+      - description: Descrição do produto
+        in: formData
+        name: description
+        type: string
+      - description: Preço do produto
+        in: formData
+        name: price
+        type: number
+      - description: Nova imagem do produto
+        in: formData
+        name: image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Produto atualizado com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao atualizar produto
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza um produto
+      tags:
+      - Produtos
+  /shipping/create:
+    post:
+      consumes:
+      - application/json
+      description: Registra um novo pedido de envio e retorna os detalhes do tracking
+      parameters:
+      - description: Detalhes do envio
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ShippingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ShippingResponse'
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao criar envio
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria um pedido de envio
+      tags:
+      - Shipping
+  /shipping/options:
+    get:
+      description: Retorna uma lista de métodos de entrega e seus preços
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ShippingOption'
+            type: array
+        "500":
+          description: Erro ao buscar opções de envio
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtém opções de envio disponíveis
+      tags:
+      - Shipping
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permite que um usuário exclua sua conta
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário deletado com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao deletar usuário
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deleta um usuário
+      tags:
+      - Usuários
+    get:
+      consumes:
+      - application/json
+      description: Retorna informações do usuário pelo ID
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "404":
+          description: Usuário não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtém os detalhes de um usuário
+      tags:
+      - Usuários
+    put:
+      consumes:
+      - application/json
+      description: Permite que o usuário atualize seu perfil com novas informações
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dados do usuário para atualização
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Perfil atualizado com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao atualizar perfil
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza os detalhes de um usuário
+      tags:
+      - Usuários
+  /users/{id}/password:
+    put:
+      consumes:
+      - application/json
+      description: Permite que um usuário altere sua senha fornecendo a senha antiga
+        e a nova senha
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dados para alteração de senha
+        in: body
+        name: passwordData
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Senha alterada com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro ao alterar senha
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Altera a senha de um usuário
+      tags:
+      - Usuários
+  /users/{user_id}/orders:
+    get:
+      description: Retorna uma lista de pedidos de um usuário específico pelo ID
+      parameters:
+      - description: ID do Usuário
+        in: path
+        name: user_id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -117,85 +828,19 @@ paths:
             items:
               $ref: '#/definitions/models.Order'
             type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Lista todos os pedidos
-      tags:
-      - Orders
-  /process-payment/:
-    post:
-      consumes:
-      - application/json
-      description: Processa o pagamento para um pedido específico com base nos dados
-        fornecidos
-      parameters:
-      - description: Dados do Pagamento
-        in: body
-        name: payment
-        required: true
-        schema:
-          $ref: '#/definitions/models.PaymentRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Processa o pagamento
-      tags:
-      - Orders
-  /update-order-status/{order_id}/:
-    put:
-      consumes:
-      - application/json
-      description: Atualiza o status do pedido identificado pelo ID
-      parameters:
-      - description: ID do Pedido
-        in: path
-        name: order_id
-        required: true
-        type: integer
-      - description: Novo status do pedido
-        in: body
-        name: status
-        required: true
-        schema:
-          $ref: '#/definitions/order_controllers.UpdateOrderStatusRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
+          description: ID do usuário inválido
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Erro ao buscar pedidos
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Atualiza o status do pedido
+      summary: Lista pedidos do usuário
       tags:
       - Orders
 swagger: "2.0"

@@ -1,3 +1,4 @@
+// order_controllers/order_controllers.go
 package order_controllers
 
 import (
@@ -11,6 +12,16 @@ import (
 )
 
 // CreateOrder cria um novo pedido
+// @Summary Cria um novo pedido
+// @Description Cria um novo pedido com os dados fornecidos
+// @Tags Orders
+// @Accept json
+// @Produce json
+// @Param request body models.Order true "Dados do pedido"
+// @Success 201 {object} models.Order
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro ao criar pedido"
+// @Router /orders [post]
 func CreateOrder(c *gin.Context) {
 	var order models.Order
 	if err := c.ShouldBindJSON(&order); err != nil {
@@ -26,6 +37,15 @@ func CreateOrder(c *gin.Context) {
 }
 
 // GetOrderDetails retorna detalhes de um pedido específico
+// @Summary Obtém detalhes de um pedido
+// @Description Retorna os detalhes de um pedido específico pelo ID
+// @Tags Orders
+// @Produce json
+// @Param order_id path int true "ID do Pedido"
+// @Success 200 {object} models.Order
+// @Failure 400 {object} map[string]string "ID inválido"
+// @Failure 500 {object} map[string]string "Erro ao buscar detalhes do pedido"
+// @Router /orders/{order_id} [get]
 func GetOrderDetails(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("order_id"))
 	if err != nil {
@@ -42,6 +62,15 @@ func GetOrderDetails(c *gin.Context) {
 }
 
 // CancelOrder cancela um pedido
+// @Summary Cancela um pedido
+// @Description Cancela um pedido específico pelo ID
+// @Tags Orders
+// @Produce json
+// @Param order_id path int true "ID do Pedido"
+// @Success 200 {object} map[string]string "Pedido cancelado com sucesso"
+// @Failure 400 {object} map[string]string "ID inválido"
+// @Failure 500 {object} map[string]string "Erro ao cancelar pedido"
+// @Router /orders/{order_id}/cancel [post]
 func CancelOrder(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("order_id"))
 	if err != nil {
@@ -57,6 +86,15 @@ func CancelOrder(c *gin.Context) {
 }
 
 // ListOrders lista pedidos do usuário
+// @Summary Lista pedidos do usuário
+// @Description Retorna uma lista de pedidos de um usuário específico pelo ID
+// @Tags Orders
+// @Produce json
+// @Param user_id path int true "ID do Usuário"
+// @Success 200 {array} models.Order
+// @Failure 400 {object} map[string]string "ID do usuário inválido"
+// @Failure 500 {object} map[string]string "Erro ao buscar pedidos"
+// @Router /users/{user_id}/orders [get]
 func ListOrders(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("user_id"))
 	if err != nil {
@@ -73,6 +111,15 @@ func ListOrders(c *gin.Context) {
 }
 
 // TrackOrder rastreia o status do pedido
+// @Summary Rastreia um pedido
+// @Description Obtém o status atual de um pedido específico pelo ID
+// @Tags Orders
+// @Produce json
+// @Param order_id path int true "ID do Pedido"
+// @Success 200 {object} map[string]string "status"
+// @Failure 400 {object} map[string]string "ID inválido"
+// @Failure 500 {object} map[string]string "Erro ao rastrear pedido"
+// @Router /orders/{order_id}/track [get]
 func TrackOrder(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("order_id"))
 	if err != nil {

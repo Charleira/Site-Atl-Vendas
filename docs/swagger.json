@@ -13,9 +13,214 @@
     "host": "localhost:8080",
     "basePath": "/",
     "paths": {
-        "/create_order/": {
+        "/cart/{user_id}/": {
+            "get": {
+                "description": "Retorna os produtos do carrinho do usuário",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Recupera o carrinho do usuário",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do Usuário",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.CartProduct"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/{user_id}/add/{product_id}/": {
             "post": {
-                "description": "Cria um pedido com base nos dados enviados no corpo da requisição",
+                "description": "Adiciona um produto ao carrinho do usuário",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Adiciona um produto ao carrinho",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do Usuário",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID do Produto",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Quantidade do Produto",
+                        "name": "quantity",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/{user_id}/clear": {
+            "delete": {
+                "description": "Remove todos os produtos do carrinho de um usuário",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Limpa o carrinho do usuário",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do Usuário",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/{user_id}/remove/{product_id}/": {
+            "delete": {
+                "description": "Remove um produto do carrinho do usuário",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Remove um produto do carrinho",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do Usuário",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID do Produto",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders": {
+            "post": {
+                "description": "Cria um novo pedido com os dados fornecidos",
                 "consumes": [
                     "application/json"
                 ],
@@ -28,8 +233,8 @@
                 "summary": "Cria um novo pedido",
                 "parameters": [
                     {
-                        "description": "Dados do Pedido",
-                        "name": "order",
+                        "description": "Dados do pedido",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -45,7 +250,16 @@
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao criar pedido",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -56,9 +270,156 @@
                 }
             }
         },
-        "/list-orders/": {
+        "/orders/{order_id}": {
             "get": {
-                "description": "Retorna a lista de todos os pedidos cadastrados",
+                "description": "Retorna os detalhes de um pedido específico pelo ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Obtém detalhes de um pedido",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do Pedido",
+                        "name": "order_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Order"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao buscar detalhes do pedido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{order_id}/cancel": {
+            "post": {
+                "description": "Cancela um pedido específico pelo ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Cancela um pedido",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do Pedido",
+                        "name": "order_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pedido cancelado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao cancelar pedido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{order_id}/track": {
+            "get": {
+                "description": "Obtém o status atual de um pedido específico pelo ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Rastreia um pedido",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do Pedido",
+                        "name": "order_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "status",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao rastrear pedido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/payments": {
+            "post": {
+                "description": "Inicia o processo de pagamento via Stripe Checkout e retorna a URL do Checkout",
                 "consumes": [
                     "application/json"
                 ],
@@ -66,9 +427,650 @@
                     "application/json"
                 ],
                 "tags": [
+                    "Pagamentos"
+                ],
+                "summary": "Cria um pagamento",
+                "parameters": [
+                    {
+                        "description": "Dados do pedido",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Order"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "checkout_url",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao criar pagamento",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/webhook": {
+            "post": {
+                "description": "Recebe notificações do Stripe sobre o status do pagamento",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pagamentos"
+                ],
+                "summary": "Webhook de pagamento",
+                "responses": {
+                    "200": {
+                        "description": "Webhook recebido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Falha ao processar webhook",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/products": {
+            "get": {
+                "description": "Retorna uma lista de produtos disponíveis no catálogo",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Produtos"
+                ],
+                "summary": "Lista todos os produtos",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Product"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao listar produtos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Cria um novo produto enviando dados e uma imagem",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Produtos"
+                ],
+                "summary": "Cria um produto",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome do produto",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Descrição do produto",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Preço do produto",
+                        "name": "price",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Imagem do produto",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Produto criado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Erro ao receber imagem",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao criar produto",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{product_id}": {
+            "get": {
+                "description": "Retorna um produto pelo seu ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Produtos"
+                ],
+                "summary": "Obtém um produto",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do produto",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Product"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao recuperar produto",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Atualiza as informações de um produto pelo ID",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Produtos"
+                ],
+                "summary": "Atualiza um produto",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do produto",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nome do produto",
+                        "name": "name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Descrição do produto",
+                        "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Preço do produto",
+                        "name": "price",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Nova imagem do produto",
+                        "name": "image",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Produto atualizado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao atualizar produto",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deleta um produto pelo ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Produtos"
+                ],
+                "summary": "Remove um produto",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do produto",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Produto removido com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao remover produto",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/shipping/create": {
+            "post": {
+                "description": "Registra um novo pedido de envio e retorna os detalhes do tracking",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shipping"
+                ],
+                "summary": "Cria um pedido de envio",
+                "parameters": [
+                    {
+                        "description": "Detalhes do envio",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ShippingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ShippingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao criar envio",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/shipping/options": {
+            "get": {
+                "description": "Retorna uma lista de métodos de entrega e seus preços",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shipping"
+                ],
+                "summary": "Obtém opções de envio disponíveis",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ShippingOption"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao buscar opções de envio",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "description": "Retorna informações do usuário pelo ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários"
+                ],
+                "summary": "Obtém os detalhes de um usuário",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do usuário",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Permite que o usuário atualize seu perfil com novas informações",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários"
+                ],
+                "summary": "Atualiza os detalhes de um usuário",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do usuário",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados do usuário para atualização",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Perfil atualizado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao atualizar perfil",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Permite que um usuário exclua sua conta",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários"
+                ],
+                "summary": "Deleta um usuário",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do usuário",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuário deletado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao deletar usuário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}/password": {
+            "put": {
+                "description": "Permite que um usuário altere sua senha fornecendo a senha antiga e a nova senha",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários"
+                ],
+                "summary": "Altera a senha de um usuário",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do usuário",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados para alteração de senha",
+                        "name": "passwordData",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Senha alterada com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao alterar senha",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{user_id}/orders": {
+            "get": {
+                "description": "Retorna uma lista de pedidos de um usuário específico pelo ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
                     "Orders"
                 ],
-                "summary": "Lista todos os pedidos",
+                "summary": "Lista pedidos do usuário",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do Usuário",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -79,107 +1081,8 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/process-payment/": {
-            "post": {
-                "description": "Processa o pagamento para um pedido específico com base nos dados fornecidos",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Orders"
-                ],
-                "summary": "Processa o pagamento",
-                "parameters": [
-                    {
-                        "description": "Dados do Pagamento",
-                        "name": "payment",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.PaymentRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/update-order-status/{order_id}/": {
-            "put": {
-                "description": "Atualiza o status do pedido identificado pelo ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Orders"
-                ],
-                "summary": "Atualiza o status do pedido",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID do Pedido",
-                        "name": "order_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Novo status do pedido",
-                        "name": "status",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/order_controllers.UpdateOrderStatusRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
+                        "description": "ID do usuário inválido",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -188,7 +1091,7 @@
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Erro ao buscar pedidos",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -201,6 +1104,17 @@
         }
     },
     "definitions": {
+        "models.CartProduct": {
+            "type": "object",
+            "properties": {
+                "product_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.Order": {
             "type": "object",
             "properties": {
@@ -231,68 +1145,121 @@
                 "total_price": {
                     "type": "number"
                 },
-                "user": {
-                    "$ref": "#/definitions/models.User"
-                },
                 "user_id": {
                     "type": "integer"
                 }
             }
         },
-        "models.PaymentRequest": {
+        "models.Product": {
             "type": "object",
             "properties": {
-                "amount": {
-                    "description": "Valor do pagamento",
-                    "type": "number"
-                },
-                "created_at": {
-                    "description": "Data e hora da criação da solicitação",
+                "description": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "method": {
-                    "description": "Método de pagamento (cartão, boleto, etc.)",
+                "image_url": {
+                    "description": "Novo campo para armazenar o caminho da imagem",
                     "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.ShippingOption": {
+            "description": "Representa um método de envio disponível via LOGGI",
+            "type": "object",
+            "properties": {
+                "eta": {
+                    "type": "string",
+                    "example": "1-2 dias úteis"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Entrega Expressa"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 19.99
+                }
+            }
+        },
+        "models.ShippingRequest": {
+            "description": "Dados necessários para criar um envio via LOGGI",
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "Rua das Palmeiras, 500"
+                },
+                "city": {
+                    "type": "string",
+                    "example": "São Paulo"
                 },
                 "order_id": {
-                    "description": "ID do pedido associado a esta solicitação de pagamento",
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 123
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+5511999999999"
+                },
+                "postal_code": {
+                    "type": "string",
+                    "example": "01010-000"
+                },
+                "recipient": {
+                    "type": "string",
+                    "example": "João Silva"
+                }
+            }
+        },
+        "models.ShippingResponse": {
+            "description": "Resposta após criação de um envio",
+            "type": "object",
+            "properties": {
+                "estimated": {
+                    "type": "string",
+                    "example": "3-5 dias úteis"
                 },
                 "status": {
-                    "description": "Status do pagamento (pendente, pago, falhado)",
-                    "type": "string"
+                    "type": "string",
+                    "example": "Pedido Criado"
                 },
-                "updated_at": {
-                    "description": "Data e hora da última atualização",
-                    "type": "string"
+                "tracking_id": {
+                    "type": "string",
+                    "example": "LOGGI-12345"
                 }
             }
         },
         "models.User": {
             "type": "object",
             "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "role": {
-                    "description": "\"admin\" ou \"customer\"",
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 },
                 "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "order_controllers.UpdateOrderStatusRequest": {
-            "type": "object",
-            "required": [
-                "status"
-            ],
-            "properties": {
-                "status": {
                     "type": "string"
                 }
             }

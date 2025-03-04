@@ -1,33 +1,47 @@
-package controllers
+package auth_controller
 
 import (
-	services "atlanta-site/services/auth_service"
+	"atlanta-site/repositories"
+	"atlanta-site/services/auth_service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
+// AuthController gerencia autenticação de usuários
 type AuthController struct {
-	Service *services.AuthService
+	// O serviço agora será um campo simples
 }
 
-func NewAuthController(service *services.AuthService) *AuthController {
-	return &AuthController{Service: service}
+// NewAuthController cria uma nova instância de AuthController
+func NewAuthController() *AuthController {
+	return &AuthController{}
 }
 
-// Login handler
-func (ctrl *AuthController) Login(c *gin.Context) {
-	var loginData struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
+// Structs para definir os dados de entrada
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type RefreshTokenRequest struct {
+	Token string `json:"token"`
+}
+
+// Login autentica um usuário e retorna um token JWT
+func Login(c *gin.Context) {
+	var loginData LoginRequest
 
 	if err := c.ShouldBindJSON(&loginData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
 		return
 	}
 
-	token, err := ctrl.Service.Login(loginData.Email, loginData.Password)
+	// Criar uma instância do repositório AuthRepository
+	repo := repositories.NewAuthRepository()
+
+	// Passa o repositório para a função de login
+	token, err := auth_service.Login(loginData.Email, loginData.Password, repo)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -36,15 +50,15 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-// Logout handler (caso use blacklist de tokens)
-func (ctrl *AuthController) Logout(c *gin.Context) {
+// Logout encerra a sessão do usuário removendo o token JWT
+func Logout(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Token não informado"})
 		return
 	}
 
-	err := ctrl.Service.Logout(token)
+	err := auth_service.Logout(token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao deslogar"})
 		return
@@ -53,18 +67,16 @@ func (ctrl *AuthController) Logout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Logout realizado com sucesso"})
 }
 
-// Refresh Token handler
-func (ctrl *AuthController) RefreshToken(c *gin.Context) {
-	var requestData struct {
-		Token string `json:"token"`
-	}
+// RefreshToken gera um novo token JWT baseado em um token antigo
+func RefreshToken(c *gin.Context) {
+	var requestData RefreshTokenRequest
 
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Token inválido"})
 		return
 	}
 
-	newToken, err := ctrl.Service.RefreshToken(requestData.Token)
+	newToken, err := auth_service.RefreshToken(requestData.Token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return

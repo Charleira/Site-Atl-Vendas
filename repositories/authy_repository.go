@@ -1,28 +1,26 @@
 package repositories
 
-import (
-	"atlanta-site/models"
-	"database/sql"
-	"errors"
-)
+import "atlanta-site/models"
 
+// AuthRepository lida com operações relacionadas ao usuário
 type AuthRepository struct {
-	DB *sql.DB
+	// Campos relacionados ao banco de dados ou fontes de dados
 }
 
-func NewAuthRepository(db *sql.DB) *AuthRepository {
-	return &AuthRepository{DB: db}
+// NewAuthRepository cria uma nova instância do repositório
+func NewAuthRepository() *AuthRepository {
+	return &AuthRepository{}
 }
 
-// Buscar usuário por email
-func (r *AuthRepository) GetUserByEmail(email string) (*models.User, error) {
-	var user models.User
-	err := r.DB.QueryRow("SELECT id, email, password, role FROM users WHERE email = ?", email).
-		Scan(&user.ID, &user.Email, &user.Password, &user.Role)
-
-	if err != nil {
-		return nil, errors.New("usuário não encontrado")
+// GetUserByEmail busca um usuário pelo e-mail
+func (repo *AuthRepository) GetUserByEmail(email string) (*models.User, error) {
+	// Aqui vai a lógica para buscar o usuário no banco de dados
+	// Exemplo fictício:
+	user := &models.User{
+		ID:       1,
+		Email:    email,
+		Password: "hashedPassword",
+		Role:     "user",
 	}
-
-	return &user, nil
+	return user, nil
 }

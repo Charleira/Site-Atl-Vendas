@@ -9,19 +9,12 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type AuthService struct {
-	Repo *repositories.AuthRepository
-}
-
-func NewAuthService(repo *repositories.AuthRepository) *AuthService {
-	return &AuthService{Repo: repo}
-}
-
 var jwtSecret = []byte("SUA_CHAVE_SECRETA")
 
 // Login do usuário
-func (s *AuthService) Login(email, password string) (string, error) {
-	user, err := s.Repo.GetUserByEmail(email)
+// Verifica as credenciais do usuário e gera um token JWT
+func Login(email, password string, repo *repositories.AuthRepository) (string, error) {
+	user, err := repo.GetUserByEmail(email)
 	if err != nil {
 		return "", err
 	}
@@ -47,13 +40,15 @@ func (s *AuthService) Login(email, password string) (string, error) {
 }
 
 // Logout (no caso de JWT, o logout é gerenciado no frontend, mas pode ser implementado via blacklist)
-func (s *AuthService) Logout(token string) error {
+// Esse método pode ser implementado futuramente, caso se deseje invalidar tokens.
+func Logout(token string) error {
 	// Aqui poderia ser implementado um sistema de blacklist para invalidar tokens
 	return nil
 }
 
 // Refresh Token (gera um novo token JWT)
-func (s *AuthService) RefreshToken(oldToken string) (string, error) {
+// Verifica se o token está válido e gera um novo token
+func RefreshToken(oldToken string) (string, error) {
 	// Valida o token existente
 	token, err := jwt.Parse(oldToken, func(token *jwt.Token) (interface{}, error) {
 		return jwtSecret, nil
