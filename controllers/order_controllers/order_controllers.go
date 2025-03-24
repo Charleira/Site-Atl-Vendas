@@ -4,7 +4,7 @@ package order_controllers
 import (
 	"net/http"
 	"strconv"
-
+	"bytes"
 	"atlanta-site/models"
 	services "atlanta-site/services/order_service"
 
@@ -33,6 +33,7 @@ func CreateOrder(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar pedido"})
 		return
 	}
+	SendDiscordNotification(user.Username, product.Name)
 	c.JSON(http.StatusCreated, order)
 }
 
@@ -133,4 +134,15 @@ func TrackOrder(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": status})
+}
+
+func SendDiscordNotification(username, product string) {
+	webhookURL := "https://discord.com/api/webhooks/SEU-WEBHOOK"
+
+	message := fmt.Sprintf("🛒 **%s** comprou **%s**!", username, product)
+
+	payload := map[string]string{"content": message}
+	jsonData, _ := json.Marshal(payload)
+
+	http.Post(webhookURL, "application/json", bytes.NewBuffer(jsonData))
 }
