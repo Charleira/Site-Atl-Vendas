@@ -15,8 +15,11 @@ import (
 func SetupRoutes(router *gin.Engine) {
 	// Rotas administrativas
 	admin := router.Group("/admin")
+	router.GET("/auth/discord", auth_controller.RedirectToDiscord)
+
 	admin.Use(middlewares.AdminMiddleware())
 	{
+		
 		admin.GET("/orders", order_controllers.ListOrders)
 		admin.PUT("/orders/:id", order_controllers.TrackOrder) // Corrigido método para update
 		admin.PUT("/users/:id/promote", user_controllers.UpdateUserDetails)
