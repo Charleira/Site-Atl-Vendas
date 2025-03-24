@@ -67,6 +67,25 @@ func Logout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Logout realizado com sucesso"})
 }
 
+// RedirectToDiscord redireciona o usuário para o OAuth2 do Discord
+func RedirectToDiscord(c *gin.Context) {
+	clientID := os.Getenv("DISCORD_CLIENT_ID")
+	redirectURI := os.Getenv("DISCORD_REDIRECT_URI") // Exemplo: "https://seusite.com/auth/callback"
+
+	if clientID == "" || redirectURI == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Configuração do Discord não encontrada"})
+		return
+	}
+
+	discordAuthURL := fmt.Sprintf(
+		"https://discord.com/api/oauth2/authorize?client_id=%s&redirect_uri=%s&response_type=code&scope=identify email",
+		clientID,
+		redirectURI,
+	)
+
+	c.Redirect(http.StatusFound, discordAuthURL)
+}
+
 // RefreshToken gera um novo token JWT baseado em um token antigo
 func RefreshToken(c *gin.Context) {
 	var requestData RefreshTokenRequest
